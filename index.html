@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CHIPS Explorer</title>
-  <link rel="chipsmap" href="/.chipsmap.json" />
   <style>
     body { font-family: 'Segoe UI', sans-serif; background: #0e0e0e; color: #00ffe0; margin: 0; padding: 2rem; }
     h1 { text-align: center; text-shadow: 0 0 8px #00ffe0; }
@@ -16,9 +15,13 @@
     .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem; }
     .trusted { background: #00ffcc33; color: #00ffcc; }
     .unknown { background: #ff003333; color: #ff0033; }
+    .token { background: #0088ff33; color: #0088ff; }
+    .expired { background: #66666633; color: #aaa; }
     .btn-token { margin-top: 0.5rem; padding: 0.4rem 1rem; background: #00ffe066; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
   </style>
   <script>
+    let tokenCache = {};
+
     function toggleDrawer(id) {
       const drawer = document.getElementById('drawer-' + id);
       if (drawer.style.display === 'block') {
@@ -54,7 +57,7 @@
 
     function generateCredential(id, issuer, role) {
       const now = new Date();
-      const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       const token = {
         issuer: issuer,
         recipient: id,
@@ -62,14 +65,34 @@
         expires: expires.toISOString(),
         signature: "sovereign-simulated"
       };
-      const blob = new Blob([JSON.stringify(token, null, 2)], { type: "application/json" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `auth-token-${id}.json`;
-      link.click();
+      tokenCache[id] = token;
+      localStorage.setItem("chips_tokens", JSON.stringify(tokenCache));
+      alert("Credential granted: " + role);
+      updateBadges();
+    }
+
+    function updateBadges() {
+      const rows = document.querySelectorAll("tbody tr.main");
+      rows.forEach(row => {
+        const id = row.dataset.id;
+        const cell = row.querySelector("td:nth-child(2)");
+        let badge = "<span class='badge unknown'>Unknown</span>";
+        if (id === "admin.dreamspire" || id === "node.lumina") badge = "<span class='badge trusted'>Trusted</span>";
+        if (tokenCache[id]) {
+          const exp = new Date(tokenCache[id].expires);
+          const now = new Date();
+          if (exp > now) badge += " <span class='badge token'>" + tokenCache[id].roleGranted + "</span>";
+          else badge += " <span class='badge expired'>Expired</span>";
+        }
+        cell.innerHTML = "Online " + badge;
+      });
     }
 
     function attachEvents() {
+      try {
+        tokenCache = JSON.parse(localStorage.getItem("chips_tokens")) || {};
+      } catch { tokenCache = {}; }
+      updateBadges();
       const rows = document.querySelectorAll("tbody tr.main");
       rows.forEach(row => {
         row.addEventListener('click', () => {
@@ -99,7 +122,7 @@
     <tbody>
       <tr class="main" data-id="admin.dreamspire">
         <td>admin.dreamspire</td>
-        <td>Online <span class="badge trusted">Trusted</span></td>
+        <td>Loading...</td>
         <td>Sovereign.Admin</td>
         <td>Client-Password</td>
         <td>LandoSim, IAI-IPS</td>
@@ -109,7 +132,7 @@
 
       <tr class="main" data-id="node.lumina">
         <td>node.lumina</td>
-        <td>Online <span class="badge trusted">Trusted</span></td>
+        <td>Loading...</td>
         <td>Explorer.Agent</td>
         <td>Token-Auth</td>
         <td>BridgeNav, StreamLogger</td>
