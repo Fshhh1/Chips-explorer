@@ -16,6 +16,7 @@
     .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem; }
     .trusted { background: #00ffcc33; color: #00ffcc; }
     .unknown { background: #ff003333; color: #ff0033; }
+    .btn-token { margin-top: 0.5rem; padding: 0.4rem 1rem; background: #00ffe066; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
   </style>
   <script>
     function toggleDrawer(id) {
@@ -41,13 +42,31 @@
                       <div>Contact: ${data.identity?.contact || '-'}</div>
                       <div>Accepts: ${data.credentials?.accepts?.join(', ') || 'None'}</div>
                       <div>Grants: ${data.credentials?.grants?.join(', ') || 'None'}</div>
-                      <div>Trusted Peers: ${data.relationships?.trustedPeers?.join(', ') || 'None'}</div>`;
+                      <div>Trusted Peers: ${data.relationships?.trustedPeers?.join(', ') || 'None'}</div>
+                      <button class='btn-token' onclick="generateCredential('${id}', '${data.node || id}', 'console.viewer')">Request Credential</button>`;
           drawer.innerHTML = html;
           drawer.dataset.loaded = true;
         })
         .catch(() => {
           drawer.innerHTML = '<div style="color:red;">Failed to load identity info.</div>';
         });
+    }
+
+    function generateCredential(id, issuer, role) {
+      const now = new Date();
+      const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      const token = {
+        issuer: issuer,
+        recipient: id,
+        roleGranted: role,
+        expires: expires.toISOString(),
+        signature: "sovereign-simulated"
+      };
+      const blob = new Blob([JSON.stringify(token, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `auth-token-${id}.json`;
+      link.click();
     }
 
     function attachEvents() {
@@ -87,16 +106,6 @@
         <td><a href="https://dreamspire-admin1-fn1l.vercel.app" target="_blank">Visit</a></td>
       </tr>
       <tr><td colspan="6"><div class="drawer" id="drawer-admin.dreamspire"></div></td></tr>
-
-      <tr class="main" data-id="mirror.pulse">
-        <td>mirror.pulse</td>
-        <td>Offline <span class="badge unknown">Unknown</span></td>
-        <td>Public.Viewer</td>
-        <td>None</td>
-        <td>Visualizer, Timeline Feed</td>
-        <td><a href="#">N/A</a></td>
-      </tr>
-      <tr><td colspan="6"><div class="drawer" id="drawer-mirror.pulse"></div></td></tr>
 
       <tr class="main" data-id="node.lumina">
         <td>node.lumina</td>
