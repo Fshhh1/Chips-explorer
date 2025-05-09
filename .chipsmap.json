@@ -1,112 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CHIPS Explorer</title>
-  <link rel="chipsmap" href="/.chipsmap.json" />
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0e0e0e;
-      color: #00ffe0;
-      padding: 2rem;
-    }
-    h1 {
-      text-align: center;
-      text-shadow: 0 0 8px #00ffe0;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-      background: #1a1a1a;
-      border: 1px solid #00ffe033;
-    }
-    th, td {
-      padding: 0.75rem;
-      border-bottom: 1px solid #00ffe011;
-      text-align: left;
-    }
-    th {
-      background-color: #111;
-    }
-    tr:hover {
-      background-color: #222;
-    }
-    a {
-      color: #00ffd0;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    #search {
-      width: 100%;
-      max-width: 400px;
-      padding: 0.6rem;
-      border-radius: 5px;
-      border: 1px solid #00ffe066;
-      margin: 1rem auto;
-      display: block;
-      background: #111;
-      color: #00ffe0;
-    }
-  </style>
-  <script>
-    function searchNodes() {
-      const input = document.getElementById('search').value.toLowerCase();
-      const rows = document.querySelectorAll('tbody tr');
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(input) ? '' : 'none';
-      });
-    }
-  </script>
-</head>
-<body>
-  <h1>CHIPS:// Node Explorer</h1>
-
-  <input id="search" onkeyup="searchNodes()" placeholder="Search node, role, core..." />
-
-  <table>
-    <thead>
-      <tr>
-        <th>Node ID</th>
-        <th>Status</th>
-        <th>Role</th>
-        <th>Protection</th>
-        <th>Core</th>
-        <th>Link</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>admin.dreamspire</td>
-        <td>Online</td>
-        <td>Sovereign.Admin</td>
-        <td>Client-Password</td>
-        <td>LandoSim, IAI-IPS</td>
-        <td><a href="https://dreamspire-admin1-fn1l.vercel.app" target="_blank">Visit</a></td>
-      </tr>
-      <tr>
-        <td>mirror.pulse</td>
-        <td>Offline</td>
-        <td>Public.Viewer</td>
-        <td>None</td>
-        <td>Visualizer, Timeline Feed</td>
-        <td><a href="#">N/A</a></td>
-      </tr>
-      <tr>
-        <td>node.lumina</td>
-        <td>Online</td>
-        <td>Explorer.Agent</td>
-        <td>Token-Auth</td>
-        <td>BridgeNav, StreamLogger</td>
-        <td><a href="#">Coming Soon</a></td>
-      </tr>
-    </tbody>
-  </table>
-</body>
-</html>
+{
+  "node": "explorer.chips",
+  "url": "https://chips-explorer-[your-vercel-id].vercel.app",
+  "role": "public.registry",
+  "interface": "HTML",
+  "protection": "none",
+  "core": [
+    "CHIPS Node Grid Viewer",
+    "Search + Sort Interface",
+    "Node Metadata Renderer"
+  ],
+  "tags": [
+    "explorer",
+    "public",
+    "registry",
+    "chips",
+    "node-visualizer"
+  ],
+  "status": "active",
+  "visibility": "open",
+  "region": "global",
+  "protocol": "https",
+  "sync": true,
+  "created": "2025-05-08T00:00:00Z",
+  "lastUpdated": "2025-05-08T00:00:00Z",
+  "heartbeat": {
+    "interval": "30m",
+    "expectedResponse": "registry:live"
+  }
+}

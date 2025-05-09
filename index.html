@@ -1,8 +1,10 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CHIPS Explorer</title>
+  <link rel="chipsmap" href="/.chipsmap.json" />
   <style>
     body {
       margin: 0;
@@ -64,7 +66,11 @@
   </script>
 </head>
 <body>
-  <h1>CHIPS:// Node Explorer</h1>  <input id="search" onkeyup="searchNodes()" placeholder="Search node, role, core..." />  <table>
+  <h1>CHIPS:// Node Explorer</h1>
+
+  <input id="search" onkeyup="searchNodes()" placeholder="Search node, role, core..." />
+
+  <table>
     <thead>
       <tr>
         <th>Node ID</th>
