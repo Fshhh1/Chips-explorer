@@ -6,84 +6,65 @@
   <title>CHIPS Explorer</title>
   <link rel="chipsmap" href="/.chipsmap.json" />
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #0e0e0e;
-      color: #00ffe0;
-      margin: 0;
-      padding: 2rem;
-    }
-    h1 {
-      text-align: center;
-      text-shadow: 0 0 8px #00ffe0;
-    }
-    input, button, textarea {
-      margin: 0.5rem 0;
-      padding: 0.5rem;
-      border-radius: 4px;
-      border: none;
-      width: 100%;
-      max-width: 500px;
-    }
-    #search { background: #111; color: #00ffe0; border: 1px solid #00ffe066; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0e0e0e; color: #00ffe0; margin: 0; padding: 2rem; }
+    h1 { text-align: center; text-shadow: 0 0 8px #00ffe0; }
     table { width: 100%; background: #1a1a1a; border-collapse: collapse; margin-top: 2rem; }
     th, td { padding: 0.75rem; border-bottom: 1px solid #00ffe011; text-align: left; }
     th { background: #111; }
-    tr:hover { background: #222; }
-    a { color: #00ffd0; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .form-section { margin-top: 3rem; background: #111; padding: 1rem; border-radius: 10px; border: 1px solid #00ffe033; }
+    tr:hover { background: #222; cursor: pointer; }
+    .drawer { display: none; background: #111; border: 1px solid #00ffe033; padding: 1rem; margin-top: -1px; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem; }
+    .trusted { background: #00ffcc33; color: #00ffcc; }
+    .unknown { background: #ff003333; color: #ff0033; }
   </style>
   <script>
-    function searchNodes() {
-      const input = document.getElementById('search').value.toLowerCase();
-      const rows = document.querySelectorAll('tbody tr');
+    function toggleDrawer(id) {
+      const drawer = document.getElementById('drawer-' + id);
+      if (drawer.style.display === 'block') {
+        drawer.style.display = 'none';
+      } else {
+        drawer.style.display = 'block';
+        if (!drawer.dataset.loaded) fetchDrawerData(id);
+      }
+    }
+
+    function fetchDrawerData(id) {
+      const row = document.querySelector(`tr[data-id='${id}']`);
+      const url = row.querySelector('a').href;
+      const drawer = document.getElementById('drawer-' + id);
+      fetch(url + '/.chipsmap.json')
+        .then(res => res.json())
+        .then(data => {
+          let html = `<strong>${data.identity?.name || 'N/A'}</strong><br/>
+                      <em>${data.identity?.purpose || ''}</em><br/>
+                      <div>Owner: ${data.identity?.owner || 'Unknown'}</div>
+                      <div>Contact: ${data.identity?.contact || '-'}</div>
+                      <div>Accepts: ${data.credentials?.accepts?.join(', ') || 'None'}</div>
+                      <div>Grants: ${data.credentials?.grants?.join(', ') || 'None'}</div>
+                      <div>Trusted Peers: ${data.relationships?.trustedPeers?.join(', ') || 'None'}</div>`;
+          drawer.innerHTML = html;
+          drawer.dataset.loaded = true;
+        })
+        .catch(() => {
+          drawer.innerHTML = '<div style="color:red;">Failed to load identity info.</div>';
+        });
+    }
+
+    function attachEvents() {
+      const rows = document.querySelectorAll("tbody tr.main");
       rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(input) ? '' : 'none';
+        row.addEventListener('click', () => {
+          const id = row.dataset.id;
+          toggleDrawer(id);
+        });
       });
     }
 
-    function generateChipsmap() {
-      const node = document.getElementById('regNode').value;
-      const url = document.getElementById('regUrl').value;
-      const role = document.getElementById('regRole').value;
-      const protection = document.getElementById('regProtection').value;
-      const core = document.getElementById('regCore').value;
-
-      const json = {
-        node: node,
-        url: url,
-        role: role,
-        interface: "HTML",
-        protection: protection,
-        core: core.split(',').map(x => x.trim()),
-        tags: ["registry", "public", "node"],
-        status: "active",
-        visibility: "open",
-        region: "global",
-        protocol: "https",
-        sync: true,
-        created: new Date().toISOString(),
-        lastUpdated: new Date().toISOString(),
-        heartbeat: {
-          interval: "30m",
-          expectedResponse: "status:alive"
-        }
-      };
-
-      const blob = new Blob([JSON.stringify(json, null, 2)], {type: "application/json"});
-      const urlBlob = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = urlBlob;
-      link.download = ".chipsmap.json";
-      link.click();
-    }
+    window.onload = attachEvents;
   </script>
 </head>
 <body>
   <h1>CHIPS:// Node Explorer</h1>
-  <input id="search" onkeyup="searchNodes()" placeholder="Search nodes..." />
 
   <table>
     <thead>
@@ -97,41 +78,36 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
+      <tr class="main" data-id="admin.dreamspire">
         <td>admin.dreamspire</td>
-        <td>Online</td>
+        <td>Online <span class="badge trusted">Trusted</span></td>
         <td>Sovereign.Admin</td>
         <td>Client-Password</td>
         <td>LandoSim, IAI-IPS</td>
         <td><a href="https://dreamspire-admin1-fn1l.vercel.app" target="_blank">Visit</a></td>
       </tr>
-      <tr>
+      <tr><td colspan="6"><div class="drawer" id="drawer-admin.dreamspire"></div></td></tr>
+
+      <tr class="main" data-id="mirror.pulse">
         <td>mirror.pulse</td>
-        <td>Offline</td>
+        <td>Offline <span class="badge unknown">Unknown</span></td>
         <td>Public.Viewer</td>
         <td>None</td>
         <td>Visualizer, Timeline Feed</td>
         <td><a href="#">N/A</a></td>
       </tr>
-      <tr>
+      <tr><td colspan="6"><div class="drawer" id="drawer-mirror.pulse"></div></td></tr>
+
+      <tr class="main" data-id="node.lumina">
         <td>node.lumina</td>
-        <td>Online</td>
+        <td>Online <span class="badge trusted">Trusted</span></td>
         <td>Explorer.Agent</td>
         <td>Token-Auth</td>
         <td>BridgeNav, StreamLogger</td>
         <td><a href="#">Coming Soon</a></td>
       </tr>
+      <tr><td colspan="6"><div class="drawer" id="drawer-node.lumina"></div></td></tr>
     </tbody>
   </table>
-
-  <div class="form-section">
-    <h2>Register Your CHIPS Node</h2>
-    <input id="regNode" placeholder="Node ID (e.g., node.alpha)" />
-    <input id="regUrl" placeholder="Node URL (https://...)" />
-    <input id="regRole" placeholder="Role (e.g., console.viewer)" />
-    <input id="regProtection" placeholder="Protection (none, token, password)" />
-    <input id="regCore" placeholder="Core functions (comma-separated)" />
-    <button onclick="generateChipsmap()">Generate .chipsmap.json</button>
-  </div>
 </body>
 </html>
