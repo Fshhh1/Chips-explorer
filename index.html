@@ -2,57 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CHIPS Explorer</title>
   <link rel="chipsmap" href="/.chipsmap.json" />
   <style>
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #0e0e0e;
       color: #00ffe0;
+      margin: 0;
       padding: 2rem;
     }
     h1 {
       text-align: center;
       text-shadow: 0 0 8px #00ffe0;
     }
-    table {
+    input, button, textarea {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: none;
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-      background: #1a1a1a;
-      border: 1px solid #00ffe033;
+      max-width: 500px;
     }
-    th, td {
-      padding: 0.75rem;
-      border-bottom: 1px solid #00ffe011;
-      text-align: left;
-    }
-    th {
-      background-color: #111;
-    }
-    tr:hover {
-      background-color: #222;
-    }
-    a {
-      color: #00ffd0;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    #search {
-      width: 100%;
-      max-width: 400px;
-      padding: 0.6rem;
-      border-radius: 5px;
-      border: 1px solid #00ffe066;
-      margin: 1rem auto;
-      display: block;
-      background: #111;
-      color: #00ffe0;
-    }
+    #search { background: #111; color: #00ffe0; border: 1px solid #00ffe066; }
+    table { width: 100%; background: #1a1a1a; border-collapse: collapse; margin-top: 2rem; }
+    th, td { padding: 0.75rem; border-bottom: 1px solid #00ffe011; text-align: left; }
+    th { background: #111; }
+    tr:hover { background: #222; }
+    a { color: #00ffd0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .form-section { margin-top: 3rem; background: #111; padding: 1rem; border-radius: 10px; border: 1px solid #00ffe033; }
   </style>
   <script>
     function searchNodes() {
@@ -63,12 +43,47 @@
         row.style.display = text.includes(input) ? '' : 'none';
       });
     }
+
+    function generateChipsmap() {
+      const node = document.getElementById('regNode').value;
+      const url = document.getElementById('regUrl').value;
+      const role = document.getElementById('regRole').value;
+      const protection = document.getElementById('regProtection').value;
+      const core = document.getElementById('regCore').value;
+
+      const json = {
+        node: node,
+        url: url,
+        role: role,
+        interface: "HTML",
+        protection: protection,
+        core: core.split(',').map(x => x.trim()),
+        tags: ["registry", "public", "node"],
+        status: "active",
+        visibility: "open",
+        region: "global",
+        protocol: "https",
+        sync: true,
+        created: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        heartbeat: {
+          interval: "30m",
+          expectedResponse: "status:alive"
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(json, null, 2)], {type: "application/json"});
+      const urlBlob = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = urlBlob;
+      link.download = ".chipsmap.json";
+      link.click();
+    }
   </script>
 </head>
 <body>
   <h1>CHIPS:// Node Explorer</h1>
-
-  <input id="search" onkeyup="searchNodes()" placeholder="Search node, role, core..." />
+  <input id="search" onkeyup="searchNodes()" placeholder="Search nodes..." />
 
   <table>
     <thead>
@@ -108,5 +123,15 @@
       </tr>
     </tbody>
   </table>
+
+  <div class="form-section">
+    <h2>Register Your CHIPS Node</h2>
+    <input id="regNode" placeholder="Node ID (e.g., node.alpha)" />
+    <input id="regUrl" placeholder="Node URL (https://...)" />
+    <input id="regRole" placeholder="Role (e.g., console.viewer)" />
+    <input id="regProtection" placeholder="Protection (none, token, password)" />
+    <input id="regCore" placeholder="Core functions (comma-separated)" />
+    <button onclick="generateChipsmap()">Generate .chipsmap.json</button>
+  </div>
 </body>
 </html>
