@@ -3,143 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CHIPS Explorer</title>
+  <title>CHIPS Explorer - Phase 10 API</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; background: #0e0e0e; color: #00ffe0; margin: 0; padding: 2rem; }
     h1 { text-align: center; text-shadow: 0 0 8px #00ffe0; }
-    table { width: 100%; background: #1a1a1a; border-collapse: collapse; margin-top: 2rem; }
-    th, td { padding: 0.75rem; border-bottom: 1px solid #00ffe011; text-align: left; }
-    th { background: #111; }
-    tr:hover { background: #222; cursor: pointer; }
-    .drawer { display: none; background: #111; border: 1px solid #00ffe033; padding: 1rem; margin-top: -1px; }
-    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem; }
-    .trusted { background: #00ffcc33; color: #00ffcc; }
-    .unknown { background: #ff003333; color: #ff0033; }
-    .token { background: #0088ff33; color: #0088ff; }
-    .expired { background: #66666633; color: #aaa; }
-    .btn-token { margin-top: 0.5rem; padding: 0.4rem 1rem; background: #00ffe066; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .panel { background: #111; border: 1px solid #00ffe033; padding: 1rem; margin: 1rem 0; border-radius: 8px; }
+    button { padding: 0.5rem 1rem; margin: 0.5rem 0; background: #00ffe066; border: none; color: #000; font-weight: bold; border-radius: 4px; cursor: pointer; }
+    pre { background: #000; padding: 1rem; color: #0f0; overflow-x: auto; }
   </style>
   <script>
-    let tokenCache = {};
-
-    function toggleDrawer(id) {
-      const drawer = document.getElementById('drawer-' + id);
-      if (drawer.style.display === 'block') {
-        drawer.style.display = 'none';
-      } else {
-        drawer.style.display = 'block';
-        if (!drawer.dataset.loaded) fetchDrawerData(id);
-      }
-    }
-
-    function fetchDrawerData(id) {
-      const row = document.querySelector(`tr[data-id='${id}']`);
-      const url = row.querySelector('a').href;
-      const drawer = document.getElementById('drawer-' + id);
-      fetch(url + '/.chipsmap.json')
-        .then(res => res.json())
-        .then(data => {
-          let html = `<strong>${data.identity?.name || 'N/A'}</strong><br/>
-                      <em>${data.identity?.purpose || ''}</em><br/>
-                      <div>Owner: ${data.identity?.owner || 'Unknown'}</div>
-                      <div>Contact: ${data.identity?.contact || '-'}</div>
-                      <div>Accepts: ${data.credentials?.accepts?.join(', ') || 'None'}</div>
-                      <div>Grants: ${data.credentials?.grants?.join(', ') || 'None'}</div>
-                      <div>Trusted Peers: ${data.relationships?.trustedPeers?.join(', ') || 'None'}</div>
-                      <button class='btn-token' onclick="generateCredential('${id}', '${data.node || id}', 'console.viewer')">Request Credential</button>`;
-          drawer.innerHTML = html;
-          drawer.dataset.loaded = true;
-        })
-        .catch(() => {
-          drawer.innerHTML = '<div style="color:red;">Failed to load identity info.</div>';
-        });
-    }
-
-    function generateCredential(id, issuer, role) {
-      const now = new Date();
-      const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const token = {
-        issuer: issuer,
-        recipient: id,
-        roleGranted: role,
-        expires: expires.toISOString(),
-        signature: "sovereign-simulated"
+    function simulateGetIdentity() {
+      const response = {
+        node: "admin.dreamspire",
+        owner: "Commander Red Melon001",
+        purpose: "Access interface + command layer",
+        status: "alive",
+        role: "sovereign.admin"
       };
-      tokenCache[id] = token;
-      localStorage.setItem("chips_tokens", JSON.stringify(tokenCache));
-      alert("Credential granted: " + role);
-      updateBadges();
+      displayResult("GET /identity", response);
     }
 
-    function updateBadges() {
-      const rows = document.querySelectorAll("tbody tr.main");
-      rows.forEach(row => {
-        const id = row.dataset.id;
-        const cell = row.querySelector("td:nth-child(2)");
-        let badge = "<span class='badge unknown'>Unknown</span>";
-        if (id === "admin.dreamspire" || id === "node.lumina") badge = "<span class='badge trusted'>Trusted</span>";
-        if (tokenCache[id]) {
-          const exp = new Date(tokenCache[id].expires);
-          const now = new Date();
-          if (exp > now) badge += " <span class='badge token'>" + tokenCache[id].roleGranted + "</span>";
-          else badge += " <span class='badge expired'>Expired</span>";
-        }
-        cell.innerHTML = "Online " + badge;
-      });
+    function simulateGetStatus() {
+      const response = {
+        node: "admin.dreamspire",
+        status: "online",
+        heartbeat: "active",
+        lastCheck: new Date().toISOString()
+      };
+      displayResult("GET /status", response);
     }
 
-    function attachEvents() {
-      try {
-        tokenCache = JSON.parse(localStorage.getItem("chips_tokens")) || {};
-      } catch { tokenCache = {}; }
-      updateBadges();
-      const rows = document.querySelectorAll("tbody tr.main");
-      rows.forEach(row => {
-        row.addEventListener('click', () => {
-          const id = row.dataset.id;
-          toggleDrawer(id);
-        });
-      });
+    function simulatePostTokenRequest() {
+      const response = {
+        recipient: "node.lumina",
+        granted: "viewer.token",
+        issued: new Date().toISOString(),
+        expires: new Date(Date.now() + 604800000).toISOString(),
+        signature: "signed-by-admin.dreamspire"
+      };
+      displayResult("POST /request-token", response);
     }
 
-    window.onload = attachEvents;
+    function displayResult(title, json) {
+      const output = document.getElementById("output");
+      const block = document.createElement("div");
+      block.innerHTML = `<strong>${title}</strong><pre>${JSON.stringify(json, null, 2)}</pre>`;
+      output.prepend(block);
+    }
   </script>
 </head>
 <body>
-  <h1>CHIPS:// Node Explorer</h1>
+  <h1>CHIPS:// SNA - Protocol Simulation</h1>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Node ID</th>
-        <th>Status</th>
-        <th>Role</th>
-        <th>Protection</th>
-        <th>Core</th>
-        <th>Link</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="main" data-id="admin.dreamspire">
-        <td>admin.dreamspire</td>
-        <td>Loading...</td>
-        <td>Sovereign.Admin</td>
-        <td>Client-Password</td>
-        <td>LandoSim, IAI-IPS</td>
-        <td><a href="https://dreamspire-admin1-fn1l.vercel.app" target="_blank">Visit</a></td>
-      </tr>
-      <tr><td colspan="6"><div class="drawer" id="drawer-admin.dreamspire"></div></td></tr>
+  <div class="panel">
+    <h2>Simulated Node Endpoints</h2>
+    <button onclick="simulateGetIdentity()">GET /identity</button>
+    <button onclick="simulateGetStatus()">GET /status</button>
+    <button onclick="simulatePostTokenRequest()">POST /request-token</button>
+  </div>
 
-      <tr class="main" data-id="node.lumina">
-        <td>node.lumina</td>
-        <td>Loading...</td>
-        <td>Explorer.Agent</td>
-        <td>Token-Auth</td>
-        <td>BridgeNav, StreamLogger</td>
-        <td><a href="#">Coming Soon</a></td>
-      </tr>
-      <tr><td colspan="6"><div class="drawer" id="drawer-node.lumina"></div></td></tr>
-    </tbody>
-  </table>
+  <div class="panel" id="output">
+    <h2>Protocol Log</h2>
+    <p>Simulation output appears here...</p>
+  </div>
 </body>
 </html>
