@@ -1,0 +1,30 @@
+{
+  "node": "explorer.chips",
+  "url": "https://chips-explorer-[your-vercel-id].vercel.app",
+  "role": "public.registry",
+  "interface": "HTML",
+  "protection": "none",
+  "core": [
+    "CHIPS Node Grid Viewer",
+    "Search + Sort Interface",
+    "Node Metadata Renderer"
+  ],
+  "tags": [
+    "explorer",
+    "public",
+    "registry",
+    "chips",
+    "node-visualizer"
+  ],
+  "status": "active",
+  "visibility": "open",
+  "region": "global",
+  "protocol": "https",
+  "sync": true,
+  "created": "2025-05-08T00:00:00Z",
+  "lastUpdated": "2025-05-08T00:00:00Z",
+  "heartbeat": {
+    "interval": "30m",
+    "expectedResponse": "registry:live"
+  }
+}
